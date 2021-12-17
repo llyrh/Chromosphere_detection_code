@@ -1,0 +1,71 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2513
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red255\green0\blue0;\red0\green127\blue127;\red0\green192\blue192;
+\red127\green127\blue0;\red0\green0\blue127;\red0\green0\blue255;\red127\green0\blue0;}
+{\*\expandedcolortbl;;\csgenericrgb\c100000\c0\c0;\csgenericrgb\c0\c49804\c49804;\csgenericrgb\c0\c75294\c75294;
+\csgenericrgb\c49804\c49804\c0;\csgenericrgb\c0\c0\c49804;\csgenericrgb\c0\c0\c100000;\csgenericrgb\c49804\c0\c0;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww18840\viewh18040\viewkind0
+\deftab720
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardeftab720\ri0\partightenfactor0
+
+\f0\fs24 \cf0 These IDL codes are used to detect and record information on regions of temporary brightenings in a time series of images, which the user should prepare as a datacube [x,y,t]. They are originally developed for use with IRIS Slitjaw Images (SJI) datacube. The method is that described in https://arxiv.org/abs/2107.13635. Please cite this work if you use the method in your own work. \
+\
+If you plan to use the detection code on other types of data, or even on different IRIS datasets, then please take a little time in testing different parameters. The most important ones are the thresholds tlow and thigh, minvol and mintstep (see preamble in bright_point_detect program).\
+\
+The main procedures are:\
+\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardeftab720\ri-2339\partightenfactor0
+\cf0 PREP_IRIS_DATACUBE: This code is specific to IRIS SJI data. User supplies a name to a FITS file, and the procedure applies some processing including sub-pixel alignment of each image etc. See preamble in program.\
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardeftab720\ri0\partightenfactor0
+\cf0 \
+\pard\pardeftab720\ri0\partightenfactor0
+\cf0 BRIGHT_POINT_DETECT: This is the main program for detection. User supplies a datacube of dimensions [x,y,t], and the procedure returns an array of structures (one structure for each detected bright point), containing some information on each brightening. See preamble in program.\
+\
+Example call for use with IRIS SJI datacube:\
+\
+\pard\pardeftab720\ri0\partightenfactor0
+
+\f1\fs22 \cf0 IDL> fitsfilename=\cf2 './20161104/iris_l2_20161104_193912_3620109603_SJI_1400_t000.fits'\cf0 \
+\pard\pardeftab720\ri-603\partightenfactor0
+\cf0 IDL> \cf3 prep_iris_datacube\cf0 ,fitsfilenow,\cf3 datacube\cf0 ,hdr,savedir=savedir,lim=lim, $\
+\pard\pardeftab720\ri-1470\partightenfactor0
+\cf0 subregion=subregion,create_imagealign_plots=create_imagealign_plots,$\
+\pard\pardeftab720\ri0\partightenfactor0
+\cf0     fit_shift=fit_shift,timerange=timerange\
+\
+IDL> det=\cf4 bright_point_detect\cf0 (datacube, $\
+			\cf5 1\cf0 /hdr.exptime,flow=flow,fhigh=fhigh, $\
+              time_var_sigma=time_var_sigma, tlow=tlow, thigh=thigh)\
+\
+IDL> help,det\
+DET             STRUCT    = -> <Anonymous> Array[1346]\
+\
+IDL> \cf6 help\cf0 ,det,/str\
+** Structure <45f73198>, 19 tags, length=76, data length=76, refs=1:\
+   BG              FLOAT           3.98933\
+   TOTB            FLOAT           678.976\
+   MAXB            FLOAT           20.6044\
+   NVOX            LONG               161\
+   NT              LONG                 8\
+   NFRAG           FLOAT           1.00000\
+   MEANSPEED       FLOAT          0.630572\
+   MEANXPOS        FLOAT           59.9531\
+   MEANYPOS        FLOAT           22.1430\
+   MEANTPOS        FLOAT           1.97326\
+   XPOS            POINTER   <PtrHeapVar12052>\
+   YPOS            POINTER   <PtrHeapVar12053>\
+   TPOS            POINTER   <PtrHeapVar12054>\
+   BRT             POINTER   <PtrHeapVar12055>\
+   AREA            POINTER   <PtrHeapVar12056>\
+   FRAG            POINTER   <PtrHeapVar12057>\
+   A               POINTER   <PtrHeapVar12058>\
+   B               POINTER   <PtrHeapVar12059>\
+   C               POINTER   <PtrHeapVar12060>\
+\
+IDL> index=\cf7 where\cf0 (det.nfrag \cf8 le\cf0  \cf5 2\cf0 ) \
+IDL> \cf4 plot\cf0 ,det[index].meantpos,det[index].meanspeed,/psym,/xst,xtitle=\cf2 'Time step'\cf0 ,ytitle=\cf2 'Mean brightening speed (pix/time step)'\
+\cf0 IDL> index=\cf7 where\cf0 (det.nt \cf8 gt\cf0  \cf5 12\cf0 )\
+IDL> \cf4 plot\cf0 ,*det[index[\cf5 0\cf0 ]].xpos,*det[index[\cf5 0\cf0 ]].ypos,/psym, $\
+		/iso,xtitle=\cf2 'X position'\cf0 ,ytitle=\cf2 'Y position'\cf0 ,/xst,/yst
+\f0 \
+}
